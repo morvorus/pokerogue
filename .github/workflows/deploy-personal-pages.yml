@@ -50,6 +50,24 @@ jobs:
           VITE_BYPASS_TUTORIAL: "0"
           VITE_SERVER_URL: http://localhost:8001
 
+      - name: Prepare provider-neutral hosting release
+        run: node scripts/prepare-hosting-release.mjs dist
+
+      - name: Verify critical release files
+        run: node scripts/verify-hosting-release.mjs dist
+        env:
+          VERIFY_ALL: "1"
+
+      - name: Enforce production security policy
+        run: node scripts/check-production-security.mjs dist
+
+      - name: Enforce GitHub Pages safety margin
+        run: node scripts/check-deployment-budget.mjs dist
+        env:
+          WARN_DEPLOYMENT_BYTES: "891289600"
+          MAX_DEPLOYMENT_BYTES: "943718400"
+          MAX_DEPLOYMENT_FILES: "100000"
+
       - name: Configure GitHub Pages
         uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
 

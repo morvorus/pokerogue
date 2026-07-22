@@ -23,3 +23,11 @@ interface ImportMetaEnv {
 interface ViteTypeOptions {
   strictImportMetaEnv: unknown;
 }
+
+declare module "virtual:custom-daily-run-validator" {
+  import type { ErrorObject } from "ajv";
+
+  type StandaloneValidator = ((data: unknown) => boolean) & { errors?: ErrorObject[] | null };
+  const validate: StandaloneValidator;
+  export default validate;
+}

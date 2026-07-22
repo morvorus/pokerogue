@@ -1,0 +1,144 @@
+<!--
+SPDX-FileCopyrightText: 2026 morvorus
+
+SPDX-License-Identifier: AGPL-3.0-only
+-->
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
+  <title>PokéRogue Save Migration Assistant</title>
+  <style>
+    :root { color-scheme: dark; font-family: system-ui, sans-serif; background: #10141f; color: #f4f7ff; }
+    body { max-width: 760px; margin: 0 auto; padding: 32px 20px; line-height: 1.55; }
+    section { background: #192132; border: 1px solid #33415f; border-radius: 14px; padding: 20px; margin: 18px 0; }
+    button, .file-label { display: inline-block; border: 0; border-radius: 9px; padding: 11px 16px; margin: 6px 8px 6px 0; background: #4c7dff; color: white; font: inherit; font-weight: 700; cursor: pointer; }
+    button:disabled { cursor: not-allowed; opacity: .5; }
+    input[type=file] { position: absolute; left: -9999px; }
+    code { overflow-wrap: anywhere; }
+    .muted { color: #b8c1d9; }
+    .warning { color: #ffd479; }
+    #status { white-space: pre-wrap; min-height: 1.5em; }
+  </style>
+</head>
+<body>
+  <h1>เครื่องมือย้ายเซฟ / Save Migration Assistant</h1>
+  <p class="muted">ข้อมูลทำงานภายในเบราว์เซอร์เท่านั้น เครื่องมือนี้ไม่อัปโหลดเซฟไปยังเซิร์ฟเวอร์</p>
+
+  <section>
+    <h2>1. ส่งออกจากเว็บเดิม</h2>
+    <p>เปิดหน้านี้บนโดเมนเดิม แล้วดาวน์โหลดไฟล์สำรองก่อนเปลี่ยนโฮสต์</p>
+    <button id="export" type="button">ดาวน์โหลดข้อมูลสำรอง</button>
+  </section>
+
+  <section>
+    <h2>2. นำเข้าที่เว็บใหม่</h2>
+    <p>เปิดหน้านี้บนโดเมนใหม่ เลือกไฟล์สำรอง และตรวจสอบต้นทางก่อนนำเข้า</p>
+    <label class="file-label" for="backup">เลือกไฟล์สำรอง</label>
+    <input id="backup" type="file" accept="application/json,.json">
+    <p id="summary" class="muted">ยังไม่ได้เลือกไฟล์</p>
+    <label><input id="overwrite" type="checkbox"> เขียนทับข้อมูลเกมที่มีอยู่แล้วบนโดเมนนี้</label>
+    <p class="warning">แนะนำให้ปิดเกมในแท็บอื่นก่อนนำเข้า และเปิดเกมใหม่หลังดำเนินการเสร็จ</p>
+    <button id="restore" type="button" disabled>นำเข้าข้อมูล</button>
+  </section>
+
+  <section aria-live="polite">
+    <h2>สถานะ</h2>
+    <div id="status">พร้อมใช้งานที่ <code></code></div>
+  </section>
+
+  <script>
+    (() => {
+      "use strict";
+      const BACKUP_VERSION = 1;
+      const prefixes = ["data_", "sessionData", "starterPrefs_", "runHistoryData_", "tutorials", "dialogues", "settings"];
+      const exactKeys = new Set(["mappingConfigs", "daily", "prLang"]);
+      const isGameKey = key => exactKeys.has(key) || prefixes.some(prefix => key.startsWith(prefix));
+      const status = document.querySelector("#status");
+      const summary = document.querySelector("#summary");
+      const restoreButton = document.querySelector("#restore");
+      let selectedBackup = null;
+      status.querySelector("code").textContent = location.origin;
+
+      const stablePayload = backup => JSON.stringify({
+        schemaVersion: backup.schemaVersion,
+        sourceOrigin: backup.sourceOrigin,
+        createdAt: backup.createdAt,
+        entries: backup.entries,
+      });
+
+      async function checksum(text) {
+        const bytes = new TextEncoder().encode(text);
+        const hash = await crypto.subtle.digest("SHA-256", bytes);
+        return Array.from(new Uint8Array(hash), byte => byte.toString(16).padStart(2, "0")).join("");
+      }
+
+      document.querySelector("#export").addEventListener("click", async () => {
+        const entries = Object.keys(localStorage).filter(isGameKey).sort().map(key => [key, localStorage.getItem(key)]);
+        if (entries.length === 0) {
+          status.textContent = "ไม่พบข้อมูลเกมในโดเมนนี้ กรุณาเปิดหน้านี้จาก URL ที่ใช้เล่นเกมเดิม";
+          return;
+        }
+        const backup = { schemaVersion: BACKUP_VERSION, sourceOrigin: location.origin, createdAt: new Date().toISOString(), entries };
+        backup.sha256 = await checksum(stablePayload(backup));
+        const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `pokerogue-browser-backup-${new Date().toISOString().slice(0, 10)}.json`;
+        link.click();
+        URL.revokeObjectURL(link.href);
+        status.textContent = `ส่งออกสำเร็จ ${entries.length} รายการจาก ${location.origin}`;
+      });
+
+      document.querySelector("#backup").addEventListener("change", async event => {
+        selectedBackup = null;
+        restoreButton.disabled = true;
+        try {
+          const file = event.target.files[0];
+          if (!file) { return; }
+          const backup = JSON.parse(await file.text());
+          if (backup.schemaVersion !== BACKUP_VERSION || !Array.isArray(backup.entries) || typeof backup.sha256 !== "string") {
+            throw new Error("รูปแบบไฟล์สำรองไม่ถูกต้องหรือไม่รองรับ");
+          }
+          if (!backup.entries.every(entry => Array.isArray(entry) && entry.length === 2 && typeof entry[0] === "string" && typeof entry[1] === "string" && isGameKey(entry[0]))) {
+            throw new Error("ไฟล์มีรายการข้อมูลที่ไม่อนุญาต");
+          }
+          if (await checksum(stablePayload(backup)) !== backup.sha256) { throw new Error("Checksum ไม่ตรงกัน ไฟล์อาจเสียหายหรือถูกแก้ไข"); }
+          selectedBackup = backup;
+          summary.textContent = `ต้นทาง: ${backup.sourceOrigin} | เวลา: ${backup.createdAt} | ${backup.entries.length} รายการ`;
+          restoreButton.disabled = false;
+          status.textContent = "ตรวจสอบไฟล์สำรองผ่านแล้ว พร้อมนำเข้า";
+        } catch (error) {
+          summary.textContent = "ไม่สามารถใช้ไฟล์นี้ได้";
+          status.textContent = `ข้อผิดพลาด: ${error.message}`;
+        }
+      });
+
+      restoreButton.addEventListener("click", () => {
+        if (!selectedBackup) { return; }
+        const overwrite = document.querySelector("#overwrite").checked;
+        const changes = [];
+        let imported = 0;
+        let skipped = 0;
+        try {
+          for (const [key, value] of selectedBackup.entries) {
+            const previous = localStorage.getItem(key);
+            if (previous !== null && !overwrite) { skipped++; continue; }
+            changes.push([key, previous]);
+            localStorage.setItem(key, value);
+            imported++;
+          }
+          status.textContent = `นำเข้าสำเร็จ ${imported} รายการ ข้าม ${skipped} รายการ กรุณาปิดหน้านี้แล้วเปิดเกมใหม่`;
+        } catch (error) {
+          for (const [key, previous] of changes.reverse()) {
+            if (previous === null) { localStorage.removeItem(key);  }else { localStorage.setItem(key, previous); }
+          }
+          status.textContent = `นำเข้าไม่สำเร็จและย้อนคืนการเปลี่ยนแปลงแล้ว: ${error.message}`;
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

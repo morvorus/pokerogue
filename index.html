@@ -19,77 +19,21 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<meta property="og:title" content="PokéRogue" />
 	<meta property="og:type" content="website" />
 	<meta property="og:description" content="A Pokémon fangame heavily inspired by the roguelite genre. Battle endlessly while gathering stacking items, exploring many different biomes, and reaching Pokémon stats you never thought possible." />
-	<meta property="og:image" content="https://pokerogue.net/logo512.png" />
-	<meta property="og:url" content="https://pokerogue.net" />
+	<meta property="og:image" content="./logo512.png" />
+	<meta property="og:url" content="https://morvorus.github.io/pokerogue/" />
 	<meta property="og:site_name" content="PokéRogue" />
 	<meta property="twitter:title" content="PokéRogue" />
 	<meta property="twitter:description" content="A Pokémon fangame heavily inspired by the roguelite genre. Battle endlessly while gathering stacking items, exploring many different biomes, and reaching Pokémon stats you never thought possible." />
-	<meta property="twitter:image" content="https://pokerogue.net/logo512.png" />
+	<meta property="twitter:image" content="./logo512.png" />
 	<meta property="twitter:card" content="summary" />
-	<meta property="twitter:url" content="https://pokerogue.net" />
+	<meta property="twitter:url" content="https://morvorus.github.io/pokerogue/" />
 	<link rel="apple-touch-icon" href="./logo512.png" />
 	<link rel="shortcut icon" type="image/png" href="./logo512.png" />
-	<link rel="canonical" href="https://pokerogue.net" />
+	<link rel="canonical" href="https://morvorus.github.io/pokerogue/" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
-	<style type="text/css">
-		#personal-fork-notice {
-			position: fixed;
-			top: 0;
-			left: 50%;
-			z-index: 10000;
-			display: none;
-			max-width: min(92vw, 760px);
-			padding: 8px 12px;
-			transform: translateX(-50%);
-			border: 1px solid #d4a72c;
-			border-top: 0;
-			border-radius: 0 0 8px 8px;
-			background: rgb(23 27 33 / 94%);
-			color: #fff;
-			font: 13px/1.4 system-ui, sans-serif;
-			text-align: center;
-		}
-
-		#personal-fork-notice button {
-			margin-left: 8px;
-			border: 0;
-			background: transparent;
-			color: #fff;
-			cursor: pointer;
-			font: inherit;
-		}
-
-		@font-face {
-			font-family: 'emerald';
-			src: url('./fonts/pokemon-emerald-pro.ttf') format('truetype');
-		}
-
-		@font-face {
-			font-family: 'pkmnems';
-			src: url('./fonts/pkmnems.ttf') format('truetype');
-		}
-	</style>
+	<link rel="stylesheet" type="text/css" href="./src/personal-fork.css" />
 	<link rel="stylesheet" type="text/css" href="./index.css" />
 	<link rel="manifest" href="./manifest.webmanifest">
-  <script>
-    if ("serviceWorker" in navigator) {
-      window.addEventListener("load", function () {
-        navigator.serviceWorker.register("./service-worker.js").then(
-          function (registration) {
-            console.log("ServiceWorker registration successful");
-          },
-          function (err) {
-            console.log("ServiceWorker registration failed: ", err);
-          },
-        );
-      });
-    }
-
-    window.addEventListener('beforeinstallprompt', e => {
-      // Prevent invasive install prompt (users are still able to install as an app)
-      e.preventDefault();
-    });
-  </script>
 </head>
 
 <body>
@@ -181,12 +125,5 @@ SPDX-License-Identifier: AGPL-3.0-only
 		</div>
 	</div>
 	<script type="module" src="./src/main.ts"></script>
-	<script>
-		if (window.location.hostname.endsWith(".github.io")) {
-			const notice = document.getElementById("personal-fork-notice");
-			notice.style.display = "block";
-			notice.querySelector("button").addEventListener("click", () => notice.remove());
-		}
-	</script>
 </body>
 </html>
