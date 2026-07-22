@@ -48,6 +48,14 @@ jobs:
           VITE_BYPASS_TUTORIAL: "0"
           VITE_SERVER_URL: http://localhost:8001
 
+      - name: Prepare provider-neutral hosting release
+        run: node scripts/prepare-hosting-release.mjs dist
+
+      - name: Verify critical release files before upload
+        run: node scripts/verify-hosting-release.mjs dist
+        env:
+          VERIFY_ALL: "1"
+
       - name: Check R2 deployment budget
         run: node scripts/check-deployment-budget.mjs dist
         env:
@@ -69,14 +77,6 @@ jobs:
           --var CURRENT_RELEASE:${{ github.sha }}
 
       - name: Smoke test live Worker
-        shell: bash
-        run: |
-          for attempt in {1..10}; do
-            if page=$(curl --fail --silent --show-error "${{ vars.CLOUDFLARE_WORKER_URL }}/"); then
-              grep -q 'id="app"' <<< "$page"
-              grep -q 'Personal development fork' <<< "$page"
-              exit 0
-            fi
-            sleep 10
-          done
-          exit 1
+        run: node scripts/verify-hosting-release.mjs "${{ vars.CLOUDFLARE_WORKER_URL }}"
+        env:
+          EXPECTED_RELEASE: ${{ github.sha }}

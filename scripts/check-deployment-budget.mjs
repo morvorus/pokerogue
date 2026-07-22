@@ -10,6 +10,7 @@ import { resolve } from "node:path";
 const root = resolve(process.argv[2] ?? "dist");
 const maxBytes = Number(process.env.MAX_DEPLOYMENT_BYTES ?? 900 * 1024 * 1024);
 const maxFiles = Number(process.env.MAX_DEPLOYMENT_FILES ?? 100_000);
+const warningBytes = Number(process.env.WARN_DEPLOYMENT_BYTES ?? maxBytes * 0.85);
 
 async function measure(directory) {
   let bytes = 0;
@@ -33,6 +34,12 @@ async function measure(directory) {
 const result = await measure(root);
 console.log(`Deployment artifact: ${result.files.toLocaleString()} files, ${result.bytes.toLocaleString()} bytes`);
 console.log(`Budget: ${maxFiles.toLocaleString()} files, ${maxBytes.toLocaleString()} bytes`);
+
+if (result.bytes >= warningBytes) {
+  console.warn(
+    `::warning::Deployment artifact has reached ${((result.bytes / maxBytes) * 100).toFixed(1)}% of its byte budget.`,
+  );
+}
 
 if (result.files > maxFiles || result.bytes > maxBytes) {
   console.error("Deployment artifact exceeds its configured budget.");

@@ -182,7 +182,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 	</div>
 	<script type="module" src="./src/main.ts"></script>
 	<script>
-		if (window.location.hostname.endsWith(".github.io")) {
+		if (!["localhost", "127.0.0.1"].includes(window.location.hostname)) {
 			const notice = document.getElementById("personal-fork-notice");
 			notice.style.display = "block";
 			notice.querySelector("button").addEventListener("click", () => notice.remove());

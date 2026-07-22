@@ -41,8 +41,16 @@ jobs:
           VITE_BYPASS_TUTORIAL: "0"
           VITE_SERVER_URL: http://localhost:8001
 
+      - name: Prepare and verify provider-neutral release
+        run: |
+          node scripts/prepare-hosting-release.mjs dist
+          node scripts/verify-hosting-release.mjs dist
+        env:
+          VERIFY_ALL: "1"
+
       - name: Enforce GitHub Pages size budget
         run: node scripts/check-deployment-budget.mjs dist
         env:
+          WARN_DEPLOYMENT_BYTES: "891289600"
           MAX_DEPLOYMENT_BYTES: "943718400"
           MAX_DEPLOYMENT_FILES: "100000"
