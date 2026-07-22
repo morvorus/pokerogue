@@ -21,12 +21,16 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   linting-path-filter:
     name: Linting path filter
     timeout-minutes: 5
     runs-on: ubuntu-latest
     permissions:
+      contents: read
       pull-requests: read
     outputs:
       all: ${{ steps.filter.outputs.all }}
@@ -108,5 +112,5 @@ jobs:
 
       - name: Check for REUSE compliance
         id: reuse-lint
-        uses: fsfe/reuse-action@v5
+        uses: fsfe/reuse-action@bb774aa972c2a89ff34781233d275075cbddf542 # v5
         if: ${{ !cancelled() }}

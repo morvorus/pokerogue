@@ -56,6 +56,9 @@ jobs:
         env:
           VERIFY_ALL: "1"
 
+      - name: Enforce production security policy
+        run: node scripts/check-production-security.mjs dist
+
       - name: Check R2 deployment budget
         run: node scripts/check-deployment-budget.mjs dist
         env:

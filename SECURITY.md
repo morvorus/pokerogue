@@ -38,6 +38,12 @@ or claim compatibility with official accounts. Repository and deployment secrets
 must be stored only in GitHub Actions secrets or environments, never in source,
 workflow output, issues, or build artifacts.
 
+Browser developer tools cannot be made into a trusted security boundary. Local
+save modification affects only the player's offline copy. Any future shared or
+competitive feature must follow the server-authoritative controls in
+[`docs/SECURITY_ARCHITECTURE.md`](docs/SECURITY_ARCHITECTURE.md); client-reported
+items, Pokémon, currency, RNG, or results must never be accepted as authoritative.
+
 ## Dependency and workflow policy
 
 - Keep the lockfile committed and install with `pnpm install --frozen-lockfile`.

@@ -31,6 +31,9 @@ jobs:
       - name: Set up dependencies
         uses: ./.github/actions/setup-deps
 
+      - name: Verify immutable GitHub Action references
+        run: node scripts/check-workflow-pinning.mjs
+
       - name: Typecheck
         run: pnpm typecheck
 
@@ -47,6 +50,9 @@ jobs:
           node scripts/verify-hosting-release.mjs dist
         env:
           VERIFY_ALL: "1"
+
+      - name: Enforce production security policy
+        run: node scripts/check-production-security.mjs dist
 
       - name: Enforce GitHub Pages size budget
         run: node scripts/check-deployment-budget.mjs dist

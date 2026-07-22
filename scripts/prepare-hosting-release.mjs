@@ -14,6 +14,21 @@ const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const outputRoot = resolve(process.argv[2] ?? "dist");
 const assistantSource = resolve(repositoryRoot, "hosting/migration-assistant.html");
 const assistantTarget = resolve(outputRoot, "migration-assistant.html");
+const productionCsp = [
+  "default-src 'self'",
+  "base-uri 'self'",
+  "connect-src 'self'",
+  "font-src 'self' data:",
+  "form-action 'self'",
+  "frame-src 'none'",
+  "img-src 'self' data: blob:",
+  "manifest-src 'self'",
+  "media-src 'self' blob:",
+  "object-src 'none'",
+  "script-src 'self'",
+  "style-src 'self' 'unsafe-inline'",
+  "worker-src 'self' blob:",
+].join("; ");
 
 await copyFile(assistantSource, assistantTarget);
 
@@ -25,6 +40,25 @@ webManifest.scope = "./";
 webManifest.start_url = "./";
 webManifest.icons = webManifest.icons?.map(icon => ({ ...icon, src: icon.src.replace(/^\//, "") }));
 await writeFile(webManifestPath, `${JSON.stringify(webManifest, null, 2)}\n`, "utf8");
+
+const indexPath = resolve(outputRoot, "index.html");
+let indexHtml = await readFile(indexPath, "utf8");
+indexHtml = indexHtml.replace(
+  /<head>/i,
+  `<head>\n  <meta http-equiv="Content-Security-Policy" content="${productionCsp}">`,
+);
+
+const assetTags = [...indexHtml.matchAll(/<(?:script|link)\b[^>]*(?:src|href)="(\.\/assets\/[^"]+)"[^>]*>/gi)];
+for (const match of assetTags.reverse()) {
+  if (match[0].includes(" integrity=")) {
+    continue;
+  }
+  const contents = await readFile(resolve(outputRoot, match[1].slice(2)));
+  const integrity = createHash("sha384").update(contents).digest("base64");
+  const hardenedTag = match[0].replace(/>$/, ` integrity="sha384-${integrity}">`);
+  indexHtml = `${indexHtml.slice(0, match.index)}${hardenedTag}${indexHtml.slice(match.index + match[0].length)}`;
+}
+await writeFile(indexPath, indexHtml, "utf8");
 
 async function listFiles(directory, prefix = "") {
   const files = [];
