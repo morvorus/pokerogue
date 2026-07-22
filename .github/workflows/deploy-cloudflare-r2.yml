@@ -1,0 +1,82 @@
+# SPDX-FileCopyrightText: 2026 morvorus
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+name: Deploy Game to Cloudflare R2
+
+on:
+  push:
+    branches:
+      - beta
+  workflow_dispatch:
+
+concurrency:
+  group: cloudflare-r2-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    if: vars.CLOUDFLARE_R2_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment:
+      name: cloudflare-production
+      url: ${{ vars.CLOUDFLARE_WORKER_URL }}
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: auto
+      AWS_EC2_METADATA_DISABLED: "true"
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+    steps:
+      - name: Checkout source and data submodules
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          submodules: recursive
+
+      - name: Set up dependencies
+        uses: ./.github/actions/setup-deps
+
+      - name: Build personal offline mode
+        run: pnpm build
+        env:
+          VITE_BYPASS_LOGIN: "1"
+          VITE_BYPASS_TUTORIAL: "0"
+          VITE_SERVER_URL: http://localhost:8001
+
+      - name: Check R2 deployment budget
+        run: node scripts/check-deployment-budget.mjs dist
+        env:
+          MAX_DEPLOYMENT_BYTES: "8589934592"
+          MAX_DEPLOYMENT_FILES: "100000"
+
+      - name: Upload immutable release to R2
+        run: >-
+          aws s3 sync dist/
+          s3://morvorus-pokerogue/releases/${{ github.sha }}/
+          --endpoint-url https://${{ secrets.CLOUDFLARE_ACCOUNT_ID }}.r2.cloudflarestorage.com
+          --no-progress
+          --only-show-errors
+
+      - name: Atomically switch Worker to the uploaded release
+        working-directory: cloudflare
+        run: >-
+          pnpm dlx wrangler@4.112.0 deploy
+          --var CURRENT_RELEASE:${{ github.sha }}
+
+      - name: Smoke test live Worker
+        shell: bash
+        run: |
+          for attempt in {1..10}; do
+            if page=$(curl --fail --silent --show-error "${{ vars.CLOUDFLARE_WORKER_URL }}/"); then
+              grep -q 'id="app"' <<< "$page"
+              grep -q 'Personal development fork' <<< "$page"
+              exit 0
+            fi
+            sleep 10
+          done
+          exit 1

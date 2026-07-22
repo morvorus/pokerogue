@@ -1,0 +1,23 @@
+{
+  // SPDX-FileCopyrightText: 2026 morvorus
+  // SPDX-License-Identifier: AGPL-3.0-only
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "morvorus-pokerogue",
+  "main": "worker.mjs",
+  "compatibility_date": "2026-07-22",
+  "workers_dev": true,
+  "preview_urls": false,
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 0.01
+  },
+  "vars": {
+    "CURRENT_RELEASE": "bootstrap"
+  },
+  "r2_buckets": [
+    {
+      "binding": "GAME_FILES",
+      "bucket_name": "morvorus-pokerogue"
+    }
+  ]
+}

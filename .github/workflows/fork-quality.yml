@@ -42,10 +42,7 @@ jobs:
           VITE_SERVER_URL: http://localhost:8001
 
       - name: Enforce GitHub Pages size budget
-        shell: bash
-        run: |
-          bytes=$(du -sb dist | cut -f1)
-          budget=$((900 * 1024 * 1024))
-          echo "Deployment artifact: $bytes bytes"
-          echo "Size budget: $budget bytes"
-          test "$bytes" -le "$budget"
+        run: node scripts/check-deployment-budget.mjs dist
+        env:
+          MAX_DEPLOYMENT_BYTES: "943718400"
+          MAX_DEPLOYMENT_FILES: "100000"
