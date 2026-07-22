@@ -1,0 +1,15 @@
+# SPDX-FileCopyrightText: 2026 morvorus
+#
+# SPDX-License-Identifier: CC-BY-NC-SA-4.0
+
+blank_issues_enabled: false
+contact_links:
+  - name: Play the current fork
+    url: https://morvorus.github.io/pokerogue/
+    about: Verify the issue against the latest deployed beta before reporting it.
+  - name: Upstream PokéRogue
+    url: https://github.com/pagefaultgames/pokerogue
+    about: Report issues that also reproduce on the unmodified upstream project.
+  - name: Private security report
+    url: https://github.com/morvorus/pokerogue/security/advisories/new
+    about: Report vulnerabilities or accidental exposure privately.

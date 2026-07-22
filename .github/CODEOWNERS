@@ -12,3 +12,7 @@
 /.github @pagefaultgames/senior-dev-team
 package.json @pagefaultgames/senior-dev-team
 pnpm-lock.yaml @pagefaultgames/senior-dev-team
+
+# Fork-wide ownership. This final rule intentionally overrides upstream teams,
+# which do not have access to the personal fork.
+* @morvorus
