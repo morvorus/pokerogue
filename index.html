@@ -1,5 +1,6 @@
 <!--
 SPDX-FileCopyrightText: 2025 Pagefault Games
+SPDX-FileCopyrightText: 2026 morvorus
 SPDX-License-Identifier: AGPL-3.0-only
 -->
 <!DOCTYPE html>
@@ -31,6 +32,33 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<link rel="canonical" href="https://pokerogue.net" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
 	<style type="text/css">
+		#personal-fork-notice {
+			position: fixed;
+			top: 0;
+			left: 50%;
+			z-index: 10000;
+			display: none;
+			max-width: min(92vw, 760px);
+			padding: 8px 12px;
+			transform: translateX(-50%);
+			border: 1px solid #d4a72c;
+			border-top: 0;
+			border-radius: 0 0 8px 8px;
+			background: rgb(23 27 33 / 94%);
+			color: #fff;
+			font: 13px/1.4 system-ui, sans-serif;
+			text-align: center;
+		}
+
+		#personal-fork-notice button {
+			margin-left: 8px;
+			border: 0;
+			background: transparent;
+			color: #fff;
+			cursor: pointer;
+			font: inherit;
+		}
+
 		@font-face {
 			font-family: 'emerald';
 			src: url('./fonts/pokemon-emerald-pro.ttf') format('truetype');
@@ -65,6 +93,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 </head>
 
 <body>
+	<aside id="personal-fork-notice" role="status">
+		Personal development fork — not affiliated with or endorsed by Pagefault Games, Nintendo, Game Freak, or The Pokémon Company.
+		<button type="button" aria-label="Dismiss notice">&#10005;</button>
+	</aside>
 	<div id="app"></div>
 	<div id="touchControls">
 		<div class="left">
@@ -149,5 +181,12 @@ SPDX-License-Identifier: AGPL-3.0-only
 		</div>
 	</div>
 	<script type="module" src="./src/main.ts"></script>
+	<script>
+		if (window.location.hostname.endsWith(".github.io")) {
+			const notice = document.getElementById("personal-fork-notice");
+			notice.style.display = "block";
+			notice.querySelector("button").addEventListener("click", () => notice.remove());
+		}
+	</script>
 </body>
 </html>
