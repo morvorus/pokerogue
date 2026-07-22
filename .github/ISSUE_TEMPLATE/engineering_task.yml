@@ -1,0 +1,48 @@
+# SPDX-FileCopyrightText: 2026 morvorus
+#
+# SPDX-License-Identifier: CC-BY-NC-SA-4.0
+
+name: Engineering task
+description: Plan a scoped technical, maintenance, or infrastructure change
+title: "[Task] "
+labels: ["type: maintenance", "status: triage"]
+body:
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Desired outcome
+      description: Describe the observable user or developer outcome, not only the implementation.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: List objective conditions that must be true for this task to be done.
+      placeholder: |
+        - [ ] Condition one
+        - [ ] Condition two
+    validations:
+      required: true
+  - type: dropdown
+    id: risk
+    attributes:
+      label: Risk class
+      options:
+        - Low — isolated and easy to reverse
+        - Medium — changes user-visible or persisted behavior
+        - High — security, deployment, dependency, or save-data impact
+    validations:
+      required: true
+  - type: textarea
+    id: test-plan
+    attributes:
+      label: Test and rollback plan
+      description: Explain automated/manual verification and how to revert safely.
+    validations:
+      required: true
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies and references
+      description: Link related issues, ADRs, upstream commits, assets, or locale changes.
